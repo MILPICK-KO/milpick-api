@@ -1,8 +1,12 @@
 const search_service = require("../services/search")
 
 async function search_military(req, res, next) {
-    console.log(req)
-    res.send("Hello from search service!")
+    try {
+        const result = await search_service.find_speciality_with(req.body.field);
+        res.json(result);
+    } catch (error) {
+        next(error);
+    }
 }
 
 module.exports = {

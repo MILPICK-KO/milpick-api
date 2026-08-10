@@ -95,7 +95,7 @@ class Speciality extends Model {
             {
                 sequelize,
                 modelName: 'MilitarySpecialty',
-                tableName: 'military_specialties',
+                tableName: 'specialties',
                 timestamps: true,
                 underscored: true,
                 indexes: [

@@ -7,7 +7,8 @@ let dotenv = require("dotenv")
 
 let indexRouter = require('./routes/index');
 let usersRouter = require('./routes/users');
-let searchRouter = require("./routes/search")
+let searchRouter = require("./routes/search");
+let verifyMiddleware = require("./middlewares/verify");
 let db = require("./models")
 
 let app = express();
