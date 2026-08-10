@@ -24,13 +24,16 @@ const db = {};
 
 const Speciality = require("./Speciality");
 const SpecialityDirectField = require("./SpecialityDirectField");
+const SpecialityExclusion = require("./SpecialityExclusion");
 
 Speciality.init(sequelize);
 SpecialityDirectField.init(sequelize);
+SpecialityExclusion.init(sequelize);
 
 // 3. db 객체에 할당
 db.Speciality = Speciality;
 db.SpecialityDirectField = SpecialityDirectField;
+db.SpecialityExclusion = SpecialityExclusion;
 
 // 4. 모델 간의 관계 설정 (JOIN을 위해 필수)
 db.Speciality.hasMany(db.SpecialityDirectField, {
@@ -39,6 +42,15 @@ db.Speciality.hasMany(db.SpecialityDirectField, {
 });
 
 db.SpecialityDirectField.belongsTo(db.Speciality, {
+    foreignKey: 'specialty_id'
+});
+
+db.Speciality.hasMany(db.SpecialityExclusion, {
+    foreignKey: 'specialty_id',
+    as: 'exclusions'
+});
+
+db.SpecialityExclusion.belongsTo(db.Speciality, {
     foreignKey: 'specialty_id'
 });
 

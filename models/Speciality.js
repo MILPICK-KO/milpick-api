@@ -22,10 +22,6 @@ class Speciality extends Model {
                     type: DataTypes.STRING(100),
                     allowNull: false,
                 },
-                military_branch: {
-                    type: DataTypes.STRING(20),
-                    allowNull: false,
-                },
                 category: {
                     type: DataTypes.STRING(50),
                     allowNull: true,
@@ -79,10 +75,6 @@ class Speciality extends Model {
                     type: DataTypes.DECIMAL(3, 1),
                     allowNull: true,
                 },
-                education_info: {
-                    type: DataTypes.TEXT,
-                    allowNull: true,
-                },
                 workplace: {
                     type: DataTypes.STRING(200),
                     allowNull: true,
@@ -100,7 +92,6 @@ class Speciality extends Model {
                 underscored: true,
                 indexes: [
                     { fields: ['specialty_code'] },
-                    { fields: ['military_branch'] },
                     { fields: ['category'] },
                     { fields: ['major_required'] },
                     { fields: ['age_limit_min'] },
