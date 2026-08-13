@@ -20,37 +20,63 @@ const sequelize = new Sequelize(
     }
 );
 
-const db = {};
-
-const Speciality = require("./Speciality");
-const SpecialityDirectField = require("./SpecialityDirectField");
-const SpecialityExclusion = require("./SpecialityExclusion");
+const Speciality = require('./Speciality');
+const SpecialityDirectField = require('./SpecialityDirectField');
+const SpecialityExclusion = require('./SpecialityExclusion');
 
 Speciality.init(sequelize);
 SpecialityDirectField.init(sequelize);
 SpecialityExclusion.init(sequelize);
 
-// 3. db 객체에 할당
-db.Speciality = Speciality;
-db.SpecialityDirectField = SpecialityDirectField;
-db.SpecialityExclusion = SpecialityExclusion;
+const MajorMapping = require('./MajorMapping')(sequelize);
+const SpecialityIndirectField = require('./SpecialityIndirectField')(sequelize);
+const SpecialityCertification = require('./SpecialityCertification')(sequelize);
+const VSpecialtySummary = require('./VSpecialtySummary')(sequelize);
+
+const db = {
+    sequelize,
+    Sequelize,
+    Speciality,
+    SpecialityDirectField,
+    SpecialityExclusion,
+    MajorMapping,
+    SpecialityIndirectField,
+    SpecialityCertification,
+    VSpecialtySummary
+};
 
 // 4. 모델 간의 관계 설정 (JOIN을 위해 필수)
-db.Speciality.hasMany(db.SpecialityDirectField, {
+Speciality.hasMany(SpecialityDirectField, {
     foreignKey: 'specialty_id',
     as: 'directFields'
 });
 
-db.SpecialityDirectField.belongsTo(db.Speciality, {
+SpecialityDirectField.belongsTo(Speciality, {
     foreignKey: 'specialty_id'
 });
 
-db.Speciality.hasMany(db.SpecialityExclusion, {
+Speciality.hasMany(SpecialityExclusion, {
     foreignKey: 'specialty_id',
     as: 'exclusions'
 });
 
-db.SpecialityExclusion.belongsTo(db.Speciality, {
+SpecialityExclusion.belongsTo(Speciality, {
+    foreignKey: 'specialty_id'
+});
+
+Speciality.hasMany(SpecialityIndirectField, {
+    foreignKey: 'specialty_id',
+    as: 'indirectFields'
+});
+SpecialityIndirectField.belongsTo(Speciality, {
+    foreignKey: 'specialty_id'
+});
+
+Speciality.hasMany(SpecialityCertification, {
+    foreignKey: 'specialty_id',
+    as: 'certifications'
+});
+SpecialityCertification.belongsTo(Speciality, {
     foreignKey: 'specialty_id'
 });
 

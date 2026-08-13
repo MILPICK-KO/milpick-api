@@ -10,6 +10,17 @@ async function search_military(req, res, next) {
     }
 }
 
+async function recommend_fields(req, res, next) {
+    try {
+        const major = req.query.major;
+        const fields = await search_service.recommend_fields(major);
+        res.json({ recommended_fields: fields });
+    } catch (error) {
+        next(error);
+    }
+}
+
 module.exports = {
-    search_military
+    search_military,
+    recommend_fields
 }
