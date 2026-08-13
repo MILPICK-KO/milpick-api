@@ -20,7 +20,17 @@ async function recommend_fields(req, res, next) {
     }
 }
 
+async function get_all_fields(req, res, next) {
+    try {
+        const fields = await search_service.get_all_fields();
+        res.json({ fields: fields });
+    } catch (error) {
+        next(error);
+    }
+}
+
 module.exports = {
     search_military,
-    recommend_fields
+    recommend_fields,
+    get_all_fields
 }

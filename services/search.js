@@ -131,7 +131,25 @@ async function recommend_fields(major) {
     return [...new Set(mappings.map(m => m.mapped_field))];
 }
 
+async function get_all_fields() {
+    const directFields = await db.SpecialityDirectField.findAll({
+        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('field_name')), 'field_name']],
+        raw: true
+    });
+    const indirectFields = await db.SpecialityIndirectField.findAll({
+        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('field_name')), 'field_name']],
+        raw: true
+    });
+
+    const allFields = new Set();
+    directFields.forEach(f => allFields.add(f.field_name));
+    indirectFields.forEach(f => allFields.add(f.field_name));
+    
+    return Array.from(allFields).sort();
+}
+
 module.exports = {
     find_speciality_with,
-    recommend_fields
+    recommend_fields,
+    get_all_fields
 }

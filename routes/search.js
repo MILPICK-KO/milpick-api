@@ -2,6 +2,7 @@ let express = require('express');
 let router = express.Router();
 let search_controller = require("../controllers/search")
 
+router.get('/fields', search_controller.get_all_fields);
 router.get('/recommend', search_controller.recommend_fields);
 
 router.use(require("../middlewares/verify").verify_request)
