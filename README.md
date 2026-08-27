@@ -5,16 +5,7 @@
 
 ---
 
-## 🛠 백엔드 구현 상세 (참고용)
 
-MILPICK API는 확장성 및 응답 성능을 고려하여 다음과 같은 구조로 최적화되어 구현되었습니다.
-
-- **전공-특기 매핑 로직 분리**: 사용자의 입력 전공과 군사 특기 키워드 간의 맵핑을 서버에 하드코딩하지 않고, `major_mappings` 테이블을 통해 유연하게 관리되도록 구현했습니다. (`GET /search/recommend` 활용)
-- **`v_specialty_summary` 뷰(View) 패턴 도입**: 클라이언트에게 응답을 보낼 때 복잡한 1:N 관계(`direct_fields`, `indirect_fields`, `certifications`) 데이터를 서버(JS)에서 무겁게 조합하는 대신, DB단에서 `GROUP_CONCAT`을 적용해 미리 정규화해 둔 통합 뷰(View)를 단일 조회하도록 구조를 개선하여 성능을 극대화했습니다.
-- **유연한 유효성 검사 (Validation)**: 검색(`field`, `exclude`) 시 DB에 존재하지 않는 새로운 키워드가 들어와도 `400 Bad Request` 에러를 뱉는 대신 안전하게 무시하고 빈 배열을 반환하도록 유효성 검사(`middlewares/verify.js`)를 개선했습니다. 이를 통해 추후 DB 데이터가 추가되어도 API 코드 수정 없이 그대로 동작합니다.
-- **다중 조건 동적 쿼리 필터링**: `search.js` 서비스는 입력된 키워드 및 배열 데이터 유무에 따라 `Op.in`, `Op.notIn`, `Op.gte`, `Op.lte` 조건을 동적으로 조합하여 단일 쿼리 파이프라인으로 신체/시력 조건부터 제외 조건까지 빈틈없이 필터링합니다.
-
----
 
 ## 1. 전공 기반 군사 분야 키워드 추천 API
 
@@ -51,13 +42,31 @@ MILPICK API는 확장성 및 응답 성능을 고려하여 다음과 같은 구�
 
 ---
 
-## 3. 군사 특기병 조건 검색 API
+## 3. 결격 조건 목록 조회 API
+
+사용자에게 자신이 가진 신체적/건강상 결격 조건(예: 디스크, 색약 등)을 선택지로 제공할 수 있도록, DB에 존재하는 모든 결격 조건 키워드를 중복 없이 반환합니다.
+
+- **URL:** `GET /search/exclusions`
+- **Response (200 OK):**
+```json
+{
+  "exclusions": [
+    "관절이상", "디스크", "색각장애", "색맹", "색약", "수전증", "심장질환", "언어장애", "청력장애"
+  ]
+}
+```
+
+---
+
+## 4. 군사 특기병 조건 검색 API
 
 사용자가 선택한 키워드(분야)와 신체 조건 등을 바탕으로 지원 가능한 군사 특기를 모두 검색하여 반환합니다.
 
 - **URL:** `POST /search`
 - **Request Body (JSON):**
-  검색 조건은 모두 선택(Optional) 사항입니다. `field` 또는 `exclude` 중 하나 이상이 포함되는 것을 권장합니다.
+  검색 조건은 모두 선택(Optional) 사항입니다. 
+  - `field` 배열에는 `GET /search/fields` 또는 `GET /search/recommend`를 통해 얻은 키워드를 넣습니다.
+  - `exclude` 배열에는 `GET /search/exclusions`를 통해 얻은 결격사유 키워드를 넣습니다.
 ```json
 {
   "field": ["소프트웨어", "전산"],          // 검색할 분야(키워드) 배열 (필수 아님)
@@ -77,8 +86,20 @@ MILPICK API는 확장성 및 응답 성능을 고려하여 다음과 같은 구�
     "specialty_code": "175105",
     "specialty_name": "S/W개발병",
     "category": "기타",
+    "duty_description": "군의 정보체계(서버, 네트워크 등) 구축 및 S/W 개발 지원",
+    "qualification_description": "소프트웨어 개발 관련 전공자 또는 관련 자격증 소지자",
     "major_required": 1,
+    "age_limit_min": 18,
+    "age_limit_max": 28,
     "physical_grade_max": 3,
+    "physical_condition_raw": "신체등급 1~3급 현역입영대상자",
+    "height_min_cm": null,
+    "height_max_cm": null,
+    "weight_min_kg": null,
+    "weight_max_kg": null,
+    "vision_min": null,
+    "workplace": "전국 각급 부대",
+    "additional_info": "면접 및 실기평가 실시",
     "direct_fields": "소프트웨어, 전산, 전자계산, 컴퓨터",
     "indirect_fields": "IT, 미디어, 인터넷, 정보보호, 정보시스템",
     "certifications": "정보처리기사, 정보보안기사"

@@ -29,8 +29,18 @@ async function get_all_fields(req, res, next) {
     }
 }
 
+async function get_all_exclusions(req, res, next) {
+    try {
+        const exclusions = await search_service.get_all_exclusions();
+        res.json({ exclusions: exclusions });
+    } catch (error) {
+        next(error);
+    }
+}
+
 module.exports = {
     search_military,
     recommend_fields,
-    get_all_fields
+    get_all_fields,
+    get_all_exclusions
 }

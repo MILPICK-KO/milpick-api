@@ -114,6 +114,9 @@ async function find_speciality_with(withWhat, excludeWhat, height, physicalGrade
     });
 
     const formattedResults = results.map(row => {
+        if (row.vision_min !== null && row.vision_min !== undefined) {
+            row.vision_min = parseFloat(row.vision_min);
+        }
         delete row.id;
         return row;
     });
@@ -131,7 +134,14 @@ async function recommend_fields(major) {
     return [...new Set(mappings.map(m => m.mapped_field))];
 }
 
+let cachedFields = null;
+let cachedExclusions = null;
+
 async function get_all_fields() {
+    if (cachedFields) {
+        return cachedFields;
+    }
+
     const directFields = await db.SpecialityDirectField.findAll({
         attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('field_name')), 'field_name']],
         raw: true
@@ -145,11 +155,27 @@ async function get_all_fields() {
     directFields.forEach(f => allFields.add(f.field_name));
     indirectFields.forEach(f => allFields.add(f.field_name));
     
-    return Array.from(allFields).sort();
+    cachedFields = Array.from(allFields).sort();
+    return cachedFields;
+}
+
+async function get_all_exclusions() {
+    if (cachedExclusions) {
+        return cachedExclusions;
+    }
+    
+    const exclusions = await db.SpecialityExclusion.findAll({
+        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('condition_name')), 'condition_name']],
+        raw: true
+    });
+    
+    cachedExclusions = exclusions.map(e => e.condition_name).sort();
+    return cachedExclusions;
 }
 
 module.exports = {
     find_speciality_with,
     recommend_fields,
-    get_all_fields
+    get_all_fields,
+    get_all_exclusions
 }
