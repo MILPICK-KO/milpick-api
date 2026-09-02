@@ -2,8 +2,8 @@ const search_service = require("../services/search")
 
 async function search_military(req, res, next) {
     try {
-        const { field, exclude, height, physical_grade, vision } = req.body;
-        const result = await search_service.find_speciality_with(field, exclude, height, physical_grade, vision);
+        const { field, exclude, height, physical_grade, vision, relation_type, recruitment_type } = req.body;
+        const result = await search_service.find_speciality_with(field, exclude, height, physical_grade, vision, relation_type || 'all', recruitment_type);
         res.json(result);
     } catch (error) {
         next(error);

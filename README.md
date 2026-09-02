@@ -67,18 +67,23 @@
   검색 조건은 모두 선택(Optional) 사항입니다. 
   - `field` 배열에는 `GET /search/fields` 또는 `GET /search/recommend`를 통해 얻은 키워드를 넣습니다.
   - `exclude` 배열에는 `GET /search/exclusions`를 통해 얻은 결격사유 키워드를 넣습니다.
+  - `relation_type`은 `"direct"`, `"indirect"`, `"all"` 중 하나를 입력하여 검색되는 분야의 직/간접 연관도를 설정할 수 있습니다. (기본값: `"all"`)
+  - `recruitment_type` 배열(또는 문자열)을 통해 "전문특기병", "어학병" 등 특정 모집구분만 필터링할 수 있습니다.
 ```json
 {
   "field": ["소프트웨어", "전산"],          // 검색할 분야(키워드) 배열 (필수 아님)
   "exclude": ["색각이상", "디스크"],        // 제외할 기피/결격 조건 배열 (필수 아님)
   "height": 175,                          // 신장(cm) (Number)
   "physical_grade": 2,                    // 신체 등급(1~4) (Number)
-  "vision": 0.8                           // 시력 (Number)
+  "vision": 0.8,                          // 시력 (Number)
+  "relation_type": "direct",              // "direct", "indirect", "all" 중 택 1 (선택 사항)
+  "recruitment_type": ["전문특기병"]         // 필터링할 모집구분 배열 (선택 사항)
 }
 ```
 
 - **Response (200 OK):**
   검색 결과에 맞는 특기 목록이 배열로 반환됩니다. `direct_fields`, `indirect_fields`, `certifications`는 관련 항목들이 쉼표(`,`)로 결합된 하나의 문자열로 내려옵니다.
+  만약 `field` 검색 조건을 넣었다면, 각 특기가 선택한 분야와 직접 연관인지 간접 연관인지를 알려주는 `match_type` 필드가 포함됩니다.
 ```json
 [
   {
@@ -102,7 +107,8 @@
     "additional_info": "면접 및 실기평가 실시",
     "direct_fields": "소프트웨어, 전산, 전자계산, 컴퓨터",
     "indirect_fields": "IT, 미디어, 인터넷, 정보보호, 정보시스템",
-    "certifications": "정보처리기사, 정보보안기사"
+    "certifications": "정보처리기사, 정보보안기사",
+    "match_type": "direct"
   }
 ]
 ```

@@ -1,7 +1,7 @@
 const { Op, Sequelize } = require('sequelize');
 const db = require("../models")
 
-async function find_speciality_with(withWhat, excludeWhat, height, physicalGrade, vision) {
+async function find_speciality_with(withWhat, excludeWhat, height, physicalGrade, vision, relationType = 'all', recruitmentType) {
     let keywords = [];
     if (withWhat && Array.isArray(withWhat)) {
         keywords.push(...withWhat);
@@ -13,20 +13,37 @@ async function find_speciality_with(withWhat, excludeWhat, height, physicalGrade
     }
 
     let includedIds = null;
+    const matchTypeMap = {}; // specialty_id -> 'direct' | 'indirect'
+
     if (keywords.length > 0) {
-        const directMatches = await db.SpecialityDirectField.findAll({
-            where: { field_name: { [Op.in]: keywords } },
-            attributes: ['specialty_id'],
-            raw: true
-        });
-        const indirectMatches = await db.SpecialityIndirectField.findAll({
-            where: { field_name: { [Op.in]: keywords } },
-            attributes: ['specialty_id'],
-            raw: true
-        });
         const ids = new Set();
-        directMatches.forEach(m => ids.add(m.specialty_id));
-        indirectMatches.forEach(m => ids.add(m.specialty_id));
+        
+        if (relationType === 'direct' || relationType === 'all') {
+            const directMatches = await db.SpecialityDirectField.findAll({
+                where: { field_name: { [Op.in]: keywords } },
+                attributes: ['specialty_id'],
+                raw: true
+            });
+            directMatches.forEach(m => {
+                ids.add(m.specialty_id);
+                matchTypeMap[m.specialty_id] = 'direct';
+            });
+        }
+        
+        if (relationType === 'indirect' || relationType === 'all') {
+            const indirectMatches = await db.SpecialityIndirectField.findAll({
+                where: { field_name: { [Op.in]: keywords } },
+                attributes: ['specialty_id'],
+                raw: true
+            });
+            indirectMatches.forEach(m => {
+                ids.add(m.specialty_id);
+                if (!matchTypeMap[m.specialty_id]) {
+                    matchTypeMap[m.specialty_id] = 'indirect';
+                }
+            });
+        }
+        
         includedIds = Array.from(ids);
         
         if (includedIds.length === 0) {
@@ -88,6 +105,13 @@ async function find_speciality_with(withWhat, excludeWhat, height, physicalGrade
         });
     }
 
+    if (recruitmentType) {
+        let rTypes = Array.isArray(recruitmentType) ? recruitmentType : [recruitmentType];
+        if (rTypes.length > 0) {
+            andConditions.push({ recruitment_type: { [Op.in]: rTypes } });
+        }
+    }
+
     if (andConditions.length > 0) {
         mainWhere[Op.and] = andConditions;
     }
@@ -117,6 +141,11 @@ async function find_speciality_with(withWhat, excludeWhat, height, physicalGrade
         if (row.vision_min !== null && row.vision_min !== undefined) {
             row.vision_min = parseFloat(row.vision_min);
         }
+        
+        if (keywords.length > 0) {
+            row.match_type = matchTypeMap[row.id] || 'indirect';
+        }
+        
         delete row.id;
         return row;
     });
