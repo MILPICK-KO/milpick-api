@@ -23,10 +23,12 @@ const sequelize = new Sequelize(
 const Speciality = require('./Speciality');
 const SpecialityDirectField = require('./SpecialityDirectField');
 const SpecialityExclusion = require('./SpecialityExclusion');
+const FieldMapping = require('./FieldMapping');
 
 Speciality.init(sequelize);
 SpecialityDirectField.init(sequelize);
 SpecialityExclusion.init(sequelize);
+FieldMapping.init(sequelize);
 
 const MajorMapping = require('./MajorMapping')(sequelize);
 const SpecialityIndirectField = require('./SpecialityIndirectField')(sequelize);
@@ -39,6 +41,7 @@ const db = {
     Speciality,
     SpecialityDirectField,
     SpecialityExclusion,
+    FieldMapping,
     MajorMapping,
     SpecialityIndirectField,
     SpecialityCertification,

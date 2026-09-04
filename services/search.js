@@ -18,9 +18,22 @@ async function find_speciality_with(withWhat, excludeWhat, height, physicalGrade
     if (keywords.length > 0) {
         const ids = new Set();
         
+        // 1. 단일화 키워드를 원본 DB 키워드 목록으로 확장
+        const mappings = await db.FieldMapping.findAll({
+            where: { unified_field_name: { [Op.in]: keywords } },
+            attributes: ['original_field_name'],
+            raw: true
+        });
+        
+        // 원본 키워드 + 혹시 직접 들어온 원본 키워드가 있다면 병합
+        const expandedKeywords = [
+            ...new Set([...keywords, ...mappings.map(m => m.original_field_name)])
+        ];
+
+        // 2. 확장된 키워드로 기존 direct/indirect 필드 조회
         if (relationType === 'direct' || relationType === 'all') {
             const directMatches = await db.SpecialityDirectField.findAll({
-                where: { field_name: { [Op.in]: keywords } },
+                where: { field_name: { [Op.in]: expandedKeywords } },
                 attributes: ['specialty_id'],
                 raw: true
             });
@@ -32,7 +45,7 @@ async function find_speciality_with(withWhat, excludeWhat, height, physicalGrade
         
         if (relationType === 'indirect' || relationType === 'all') {
             const indirectMatches = await db.SpecialityIndirectField.findAll({
-                where: { field_name: { [Op.in]: keywords } },
+                where: { field_name: { [Op.in]: expandedKeywords } },
                 attributes: ['specialty_id'],
                 raw: true
             });
@@ -171,20 +184,15 @@ async function get_all_fields() {
         return cachedFields;
     }
 
-    const directFields = await db.SpecialityDirectField.findAll({
-        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('field_name')), 'field_name']],
-        raw: true
-    });
-    const indirectFields = await db.SpecialityIndirectField.findAll({
-        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('field_name')), 'field_name']],
+    // field_mappings 테이블에서 DISTINCT unified_field_name 추출
+    const mappings = await db.FieldMapping.findAll({
+        attributes: [
+            [Sequelize.fn('DISTINCT', Sequelize.col('unified_field_name')), 'field_name']
+        ],
         raw: true
     });
 
-    const allFields = new Set();
-    directFields.forEach(f => allFields.add(f.field_name));
-    indirectFields.forEach(f => allFields.add(f.field_name));
-    
-    cachedFields = Array.from(allFields).sort();
+    cachedFields = mappings.map(m => m.field_name).sort();
     return cachedFields;
 }
 
