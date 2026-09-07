@@ -115,6 +115,36 @@
 
 ---
 
+## 5. 전체 특기 목록 조회 API (프론트엔드 실시간 라이브 검색용)
+
+프론트엔드에서 전체 군사특기 데이터를 일괄 로드하여 클라이언트 라이브 검색을 수행할 수 있도록, 데이터베이스에 등록된 전체 군사특기 목록을 반환합니다. (인메모리 캐싱 적용)
+
+- **URL:** `GET /specialties/all`
+- **Query Parameter:**
+  - `recruitment_type` (String, 선택): 특정 모집구분(`기술행정병`, `전문특기병`, `취업맞춤특기병`, `어학병`, `카투사`)만 필터링할 경우 지정. 생략 시 전체 반환
+- **Response (200 OK):**
+  전체 특기 객체 배열이 반환됩니다.
+```json
+[
+  {
+    "recruitment_type": "전문특기병",
+    "specialty_code": "171101",
+    "specialty_name": "정보보호병",
+    "category": "소프트웨어",
+    "duty_description": "ㅇ 육군 전산망 정보보호체계 운용 및 침해사고 대응 업무 수행\nㅇ 정보보호 정책 준수 상태 점검 및 취약점 분석",
+    "qualification_description": "정보보안기사, 산업기사 또는 전산 관련 학과 2년 수료 이상",
+    "major_required": 1,
+    "age_limit_min": 18,
+    "age_limit_max": 28,
+    "physical_grade_max": 2,
+    "physical_condition_raw": "신체등급 1~2급 현역병 입영대상자",
+    "certifications": "정보보안기사, 정보처리기사, CISA, CISSP 등"
+  }
+]
+```
+
+---
+
 ## 🚨 프론트엔드 구현 시 주의사항 (권장)
 
 조회된 결과 목록 중 `recruitment_type` (모집구분) 값을 확인하여 다음과 같은 사용자 안내를 처리해 주시기 바랍니다.
